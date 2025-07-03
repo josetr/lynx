@@ -62,8 +62,23 @@ TEST_F(InspectorLepusDebuggerImplTest, GetDebugInfo) {
     std::shared_ptr<lynx::testing::DevToolPlatformFacadeMock> platform =
         std::make_shared<lynx::testing::DevToolPlatformFacadeMock>();
     debugger_->SetDevToolPlatformFacade(platform);
-    result = debugger_->GetDebugInfo("test");
-    EXPECT_EQ(result, "test GetLepusDebugInfo");
+
+    std::string url1 = "http://test/debug-info.json";
+    std::string url2 = "http:/test/debug-info.json";
+    std::string url3 = "test";
+    std::string url4;
+
+    result = debugger_->GetDebugInfo(url1);
+    EXPECT_EQ(result, "");
+
+    result = debugger_->GetDebugInfo(url2);
+    EXPECT_EQ(result, "");
+
+    result = debugger_->GetDebugInfo(url3);
+    EXPECT_EQ(result, "");
+
+    result = debugger_->GetDebugInfo(url4);
+    EXPECT_EQ(result, "");
   }
 
   result = debugger_->GetDebugInfo("test");

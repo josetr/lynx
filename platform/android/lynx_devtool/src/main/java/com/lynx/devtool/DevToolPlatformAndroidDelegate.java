@@ -7,7 +7,6 @@ import android.text.TextUtils;
 import android.widget.Toast;
 import androidx.annotation.Keep;
 import com.lynx.devtool.helper.EmulateTouchHelper;
-import com.lynx.devtool.helper.LepusDebugInfoHelper;
 import com.lynx.devtool.helper.ScreenCapturer;
 import com.lynx.devtool.helper.ScreenCastHelper;
 import com.lynx.devtool.helper.UITreeHelper;
@@ -48,8 +47,6 @@ public class DevToolPlatformAndroidDelegate {
   // ScreenCast
   private ScreenCastHelper mCastHelper;
 
-  private LepusDebugInfoHelper mLepusDebugInfoHelper;
-
   private boolean mNavigatePending;
 
   // DebugInfo
@@ -60,7 +57,6 @@ public class DevToolPlatformAndroidDelegate {
     mUITreeHelper = new UITreeHelper();
     mConsoleDelegateManager = new ConsoleDelegateManager();
     mLynxView = new WeakReference<>(lynxView);
-    mLepusDebugInfoHelper = new LepusDebugInfoHelper();
 
     mCastHelper = new ScreenCastHelper(this, lynxView);
 
@@ -326,14 +322,6 @@ public class DevToolPlatformAndroidDelegate {
   public String getLepusDebugInfoUrl(String fileName) {
     if (mFacadePtr != 0) {
       return nativeGetLepusDebugInfoUrl(mFacadePtr, fileName);
-    }
-    return "";
-  }
-
-  @CalledByNative
-  public String getLepusDebugInfo(String url) {
-    if (mLepusDebugInfoHelper != null) {
-      return mLepusDebugInfoHelper.getDebugInfo(url);
     }
     return "";
   }

@@ -89,8 +89,6 @@ NS_ASSUME_NONNULL_BEGIN
 
 - (std::string)getTemplateJsInfo:(int32_t)offset size:(int32_t)size;
 
-- (std::string)getLepusDebugInfo:(const std::string &)url;
-
 - (NSString *)getLepusDebugInfoUrl:(NSString *_Nonnull)filename;
 
 - (void)emulateTouch:(std::shared_ptr<lynx::devtool::MouseEvent>)input;

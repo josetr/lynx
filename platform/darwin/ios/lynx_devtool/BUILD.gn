@@ -26,8 +26,6 @@ subspec_target("devtool") {
     "DevtoolWebSocketModule.m",
     "GlobalDevToolPlatformDarwinDelegate.h",
     "GlobalDevToolPlatformDarwinDelegate.mm",
-    "Helper/LepusDebugInfoHelper.h",
-    "Helper/LepusDebugInfoHelper.mm",
     "Helper/LynxDeviceInfoHelper.h",
     "Helper/LynxDeviceInfoHelper.m",
     "Helper/LynxEmulateTouchHelper.h",
@@ -339,7 +337,6 @@ subspec_target("UnitTests") {
   test_subspec = true
   sources = [
     "ConsoleDelegateManagerUnitTest.mm",
-    "Helper/LepusDebugInfoHelperUnitTest.mm",
     "Helper/LynxUITreeHelperUnitTest.m",
     "LynxDevToolErrorUtilsUnitTest.m",
     "Memory/LynxMemoryControllerUnitTest.m",

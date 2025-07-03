@@ -45,6 +45,8 @@ class InspectorLepusDebuggerImpl : public JavaScriptDebuggerNG {
   void SetRecordID(int64_t record_id);
 
  private:
+  static const fml::RefPtr<fml::TaskRunner>& GetDownloadTaskRunner();
+
   std::shared_ptr<InspectorLepusObserverImpl> observer_;
   // There may be multiple lepus contexts if the LynxView contains lazy
   // components, and each context needs a delegate. So we use a map to manage

@@ -1,0 +1,20 @@
+# Copyright 2023 The Lynx Authors. All rights reserved.
+# Licensed under the Apache License Version 2.0 that can be found in the
+# LICENSE file in the root directory of this source tree.
+
+source_set("httplib") {
+  sources = [
+    "httplib.cc",
+    "httplib.h",
+  ]
+
+  if (is_linux) {
+    libs = [ "anl" ]
+  } else if (is_mac) {
+    frameworks = [
+      "CFNetwork.framework",
+    ]
+  }
+
+  defines = [ "CPPHTTPLIB_NO_EXCEPTIONS" ]
+}

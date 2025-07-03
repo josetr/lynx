@@ -8,7 +8,6 @@
 #import <Lynx/LynxPageReloadHelper+Internal.h>
 #import <Lynx/LynxTemplateData+Converter.h>
 #import <LynxDevtool/ConsoleDelegateManager.h>
-#import <LynxDevtool/LepusDebugInfoHelper.h>
 #import <LynxDevtool/LynxDeviceInfoHelper.h>
 #import <LynxDevtool/LynxDevtoolEnv.h>
 #import <LynxDevtool/LynxEmulateTouchHelper.h>
@@ -194,14 +193,6 @@ class DevToolPlatformDarwin : public DevToolPlatformFacade {
     return nullptr;
   }
 
-  std::string GetLepusDebugInfo(const std::string& url) override {
-    __strong typeof(_darwin) darwin = _darwin;
-    if (darwin) {
-      return [darwin getLepusDebugInfo:url];
-    }
-    return "";
-  }
-
   std::string GetTemplateJsInfo(int32_t offset, int32_t size) override {
     __strong typeof(_darwin) darwin = _darwin;
     if (darwin != nil) {
@@ -298,7 +289,6 @@ class DevToolPlatformDarwin : public DevToolPlatformFacade {
 
   // ConsoleDelegateManager
   ConsoleDelegateManager* _consoleDelegateManager;
-  LepusDebugInfoHelper* _lepusDebugInfoHelper;
 
   LynxScreenCastHelper* _castHelper;
   void (^_devtoolCallback)(NSDictionary*);
@@ -319,7 +309,6 @@ class DevToolPlatformDarwin : public DevToolPlatformFacade {
 
   _consoleDelegateManager =
       [[ConsoleDelegateManager alloc] initWithDevToolPlatformFacade:devtool_platform_facade_];
-  _lepusDebugInfoHelper = [[LepusDebugInfoHelper alloc] init];
 
   return self;
 }
@@ -527,10 +516,6 @@ class DevToolPlatformDarwin : public DevToolPlatformFacade {
     return str ? std::string([str UTF8String]) : "";
   }
   return "";
-}
-
-- (std::string)getLepusDebugInfo:(const std::string&)url {
-  return [_lepusDebugInfoHelper getDebugInfo:url];
 }
 
 - (NSString*)getLepusDebugInfoUrl:(NSString*)filename {

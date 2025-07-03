@@ -57,10 +57,6 @@ class DevToolPlatformFacadeMock : public lynx::devtool::DevToolPlatformFacade {
   lynx::lepus::Value* GetLepusValueFromTemplateData() override;
   std::string GetTemplateJsInfo(int32_t offset, int32_t size) override;
 
-  std::string GetLepusDebugInfo(const std::string& url) override {
-    return "test GetLepusDebugInfo";
-  }
-
   std::unordered_map<std::string, bool> devtools_switch_;
 };
 

@@ -80,6 +80,7 @@ Lynx incorporates the following third-party libraries, which have significantly 
 - [buildroot](https://github.com/flutter/buildroot)
 - [double-conversion](https://github.com/google/double-conversion)
 - [googletest](https://github.com/google/googletest)
+- [httplib](https://github.com/yhirose/cpp-httplib)
 - [jsoncpp](https://github.com/open-source-parsers/jsoncpp)
 - [modp_b64](https://github.com/Piasy/modp_b64)
 - [node-addon-api](https://github.com/nodejs/node-addon-api)

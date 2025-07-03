@@ -261,21 +261,6 @@ void DevToolPlatformAndroid::OnConsoleObject(const std::string& detail,
   }
 }
 
-std::string DevToolPlatformAndroid::GetLepusDebugInfo(const std::string& url) {
-  std::lock_guard<std::mutex> lock(mutex_);
-  JNIEnv* env = lynx::base::android::AttachCurrentThread();
-  lynx::base::android::ScopedLocalJavaRef<jobject> ref(weak_android_delegate_);
-  if (!env->IsSameObject(ref.Get(), nullptr)) {
-    auto jni_url =
-        lynx::base::android::JNIConvertHelper::ConvertToJNIStringUTF(env, url);
-    auto jni_debug_info = Java_DevToolPlatformAndroidDelegate_getLepusDebugInfo(
-        env, ref.Get(), jni_url.Get());
-    return lynx::base::android::JNIConvertHelper::ConvertToString(
-        env, jni_debug_info.Get());
-  }
-  return "";
-}
-
 // OnConsoleObject and OnConsoleMessage are called from the JS thread, and
 // Destroy is called from the UI thread, so we need to lock in these functions
 // and reset weak_android_delegate_ when destroying.

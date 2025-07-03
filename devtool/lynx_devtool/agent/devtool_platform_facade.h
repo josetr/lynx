@@ -96,7 +96,6 @@ class DevToolPlatformFacade
   virtual void OnConsoleMessage(const std::string& message) {}
   virtual void OnConsoleObject(const std::string& detail, int callback_id) {}
 
-  virtual std::string GetLepusDebugInfo(const std::string& url) { return ""; }
   std::string GetLepusDebugInfoUrl(const std::string& file_name);
 
  protected:
