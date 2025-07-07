@@ -77,7 +77,7 @@ Devtool_Native_includes = rebase_path([
 
 Lepus_deps = [ "PrimJS/quickjs" ]
 
-devtool_extend_sources = []
+devtool_extend_subspec = []
 
 JSDebug_deps = rebase_path(
         [
