@@ -56,7 +56,8 @@ class IntValueIndex {
   public static final int HAS_BOUND = 16;
   public static final int HAS_STICKY = 17;
   public static final int MAX_HEIGHT = 18;
-  public static final int SIZE = 19;
+  public static final int IS_DISPLAY_NONE = 19;
+  public static final int SIZE = 20;
 }
 
 class UIOperationType {
