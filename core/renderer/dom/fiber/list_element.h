@@ -72,6 +72,21 @@ class ListElement : public FiberElement,
     return fml::AdoptRef<FiberElement>(
         new ListElement(*this, clone_resolved_props));
   }
+  void visitor(void* rt, void* func, uint64_t trace_tool) override {
+    LEPUSRuntime* runtime = reinterpret_cast<LEPUSRuntime*>(rt);
+    LEPUS_MarkFunc* mark_func = reinterpret_cast<LEPUS_MarkFunc*>(func);
+    LEPUSValue v;
+    lynx_value_get_LEPUSValue(component_at_index_.env(),
+                              component_at_index_.value(), &v);
+    mark_func(runtime, v, trace_tool);
+    lynx_value_get_LEPUSValue(component_at_indexes_.env(),
+                              component_at_indexes_.value(), &v);
+    mark_func(runtime, v, trace_tool);
+    lynx_value_get_LEPUSValue(enqueue_component_.env(),
+                              enqueue_component_.value(), &v);
+    mark_func(runtime, v, trace_tool);
+    FiberElement::visitor(rt, reinterpret_cast<void*>(mark_func), trace_tool);
+  }
 
   ~ListElement() override = default;
 

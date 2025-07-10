@@ -80,6 +80,15 @@ lynx_api_status lynx_value_get_bool(lynx_api_env env, lynx_value value,
   *result = LEPUS_VALUE_GET_BOOL(WrapJSValue(value));
   return lynx_api_ok;
 }
+lynx_api_status lynx_value_get_LEPUSValue(lynx_api_env env, lynx_value value,
+                                          void* result) {
+  if (value.type == lynx_value_extended) {
+    *static_cast<LEPUSValue*>(result) = WrapJSValue(value);
+  } else {
+    *static_cast<LEPUSValue*>(result) = LEPUS_UNDEFINED;
+  }
+  return lynx_api_ok;
+}
 
 lynx_api_status lynx_value_get_double(lynx_api_env env, lynx_value value,
                                       double* result) {
@@ -465,7 +474,23 @@ lynx_api_status lynx_value_add_reference(lynx_api_env env, lynx_value value,
   }
   return lynx_api_ok;
 }
-
+lynx_api_status lynx_value_add_reference_weak(lynx_api_env env,
+                                              lynx_value value,
+                                              lynx_value_ref* result) {
+  LEPUSValue val = WrapJSValue(value);
+  if (!LEPUS_IsGCMode(env->ctx->ctx)) {
+    LEPUS_DupValueRT(env->ctx->rt, val);
+    *result = nullptr;
+  } else {
+    GCPersistent* p_val = nullptr;
+    if (*result != nullptr) {
+      p_val = reinterpret_cast<GCPersistent*>(*result);
+      p_val->Reset(env->ctx->rt);
+    }
+    *result = nullptr;
+  }
+  return lynx_api_ok;
+}
 lynx_api_status lynx_value_move_reference(lynx_api_env env, lynx_value src_val,
                                           lynx_value_ref src_ref,
                                           lynx_value_ref* result) {
