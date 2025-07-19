@@ -145,6 +145,7 @@ task generateAllGnCmakeTargets {
 
 task buildHomePage {
     description "Build home page card."
+    /*
     exec {
         workingDir "../homepage"
         commandLine pythonExec, "build.py"
@@ -157,29 +158,30 @@ task buildHomePage {
         rename { String fileName ->
             'homepage.lynx.bundle'
         }
-    }
+    }*/
 }
+buildHomePage.onlyIf { build_showcase == 'true' }
 
 task buildShowcase {
-    description "Build showcase card."
+    /*description "Build showcase card."
     exec {
         workingDir "../showcase"
         commandLine pythonExec, "./build_and_copy.py"
         println commandLine
-    }
+    }*/
 }
 
 buildShowcase.onlyIf { build_showcase == 'true' }
 
 if (buildIntegrationDemo) {
-    task buildIntegrationDemo {
+    /*task buildIntegrationDemo {
         description "Build Integeration Test Demo Card."
         exec {
             workingDir "../../testing/integration_test/demo_pages"
             commandLine pythonExec, "./build_and_copy.py"
             println commandLine
         }
-    }
+    }*/
 }
 
 task clean(type: Delete) {

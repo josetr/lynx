@@ -9,6 +9,7 @@ import android.content.SharedPreferences;
 import android.content.res.AssetManager;
 import android.content.res.Configuration;
 import android.graphics.Color;
+import android.graphics.Rect;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
@@ -16,21 +17,34 @@ import android.util.Log;
 import android.view.Display;
 import android.view.DisplayCutout;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
+import android.view.inputmethod.InputMethodManager;
+import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.TextView;
+
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowCompat;
+import androidx.core.view.WindowInsetsCompat;
 import androidx.core.view.WindowInsetsControllerCompat;
 import com.lynx.explorer.input.LynxExplorerInput;
 import com.lynx.explorer.modules.LynxSettingManager;
+import com.lynx.explorer.input.kt.LynxExplorerProgressBar;
+import com.lynx.explorer.input.kt.LynxExplorerSwitch;
+import com.lynx.explorer.input.LynxMaterialIcon;
 import com.lynx.explorer.provider.DemoGenericResourceFetcher;
 import com.lynx.explorer.provider.DemoMediaResourceFetcher;
 import com.lynx.explorer.provider.DemoTemplateResourceFetcher;
 import com.lynx.explorer.utils.QueryMapUtils;
+import com.lynx.react.bridge.JavaOnlyArray;
+import com.lynx.react.bridge.JavaOnlyMap;
+import com.lynx.react.bridge.WritableMap;
 import com.lynx.tasm.LynxBooleanOption;
 import com.lynx.tasm.LynxView;
 import com.lynx.tasm.LynxViewBuilder;
@@ -40,12 +54,15 @@ import com.lynx.tasm.TimingHandler;
 import com.lynx.tasm.behavior.Behavior;
 import com.lynx.tasm.behavior.LynxContext;
 import com.lynx.tasm.utils.DisplayMetricsHolder;
+import com.lynx.tasm.behavior.ui.view.UIView;
 import com.lynx.xelement.XElementBehaviors;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
+// import androidx.activity.OnBackPressedCallback;
+
 
 public class LynxViewShellActivity extends AppCompatActivity {
   public static final String URL_KEY = "url";
@@ -63,15 +80,30 @@ public class LynxViewShellActivity extends AppCompatActivity {
   private TimingHandler.ExtraTimingInfo extraTimingInfo = new TimingHandler.ExtraTimingInfo();
 
   @Override
+  public void onBackPressed() {
+    WritableMap data = new JavaOnlyMap();
+    data.putString("key", "value");
+    mLynxView.sendGlobalEvent("back", JavaOnlyArray.of(data));
+  }
+
+  @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
+    WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
+    // WindowCompat.enableEdgeToEdge(getWindow());
     extraTimingInfo.mOpenTime = System.currentTimeMillis();
     extraTimingInfo.mContainerInitStart = System.currentTimeMillis();
-
-    Intent intent = getIntent();
+    
+    AppCompatActivity Parent = this;
+    Intent intent = getIntent(); 
     String url = intent.getStringExtra(URL_KEY);
     if (url == null) {
-      url = HOME_PAGE_URL;
+      if (BuildConfig.DEBUG){
+        url = "http://near.vendefy.net:3000/main.lynx.bundle?fullscreen=true"; // HOME_PAGE_URL;
+      }
+      else {
+        url = "file://lynx?local://main.lynx.bundle?fullscreen=true";
+      }
     }
 
     setTopBarAppearance(url);
@@ -79,6 +111,24 @@ public class LynxViewShellActivity extends AppCompatActivity {
 
     extraTimingInfo.mContainerInitEnd = System.currentTimeMillis();
 
+    // View root = findViewById(R.id.root);
+    
+    ViewCompat.setOnApplyWindowInsetsListener(mLynxContainer, (v, insets) -> {
+      int insetTypes = WindowInsetsCompat.Type.displayCutout() | WindowInsetsCompat.Type.systemBars();
+      float density = getResources().getDisplayMetrics().density;
+      Insets systemInsets = insets.getInsets(insetTypes);
+      Insets keyboard = insets.getInsets(WindowInsetsCompat.Type.ime());
+      v.setPadding(
+        systemInsets.left,
+        systemInsets.top,
+        systemInsets.right,
+        systemInsets.bottom
+      );
+      float height = (keyboard.bottom - keyboard.top - systemInsets.bottom) / density;
+      mLynxView.sendGlobalEvent("keyboard-height", JavaOnlyArray.of(height));
+      return WindowInsetsCompat.CONSUMED;
+    });
+    
     openTargetUrl(url);
   }
 
@@ -88,6 +138,46 @@ public class LynxViewShellActivity extends AppCompatActivity {
       mLynxView.destroy();
     }
     super.onDestroy();
+  }
+
+  // @Override
+  public boolean dispatchTouchEvent(MotionEvent ev) {
+    View currentFocus = getCurrentFocus();
+
+    if (currentFocus != null) {
+      if (ev.getAction() == MotionEvent.ACTION_UP) {
+        Rect rect = new Rect();
+        currentFocus.getGlobalVisibleRect(rect);
+        if (!rect.contains((int) ev.getRawX(), (int) ev.getRawY())) {
+          View touchedView = findViewAt((ViewGroup) getWindow().getDecorView(), (int) ev.getRawX(), (int) ev.getRawY());
+          if (!(touchedView instanceof EditText)) {
+            InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+            imm.hideSoftInputFromWindow(currentFocus.getWindowToken(), 0);
+            currentFocus.clearFocus();
+          }
+        }
+      }
+    }
+    
+    return super.dispatchTouchEvent(ev);
+  }
+
+  private View findViewAt(View view, int x, int y) {
+    if (view instanceof ViewGroup) {
+      ViewGroup viewGroup = (ViewGroup) view;
+      for (int i = 0; i < viewGroup.getChildCount(); i++) {
+        View child = viewGroup.getChildAt(i);
+        int[] location = new int[2];
+        child.getLocationOnScreen(location);
+        Rect childRect = new Rect(location[0], location[1],
+          location[0] + child.getWidth(),
+          location[1] + child.getHeight());
+        if (childRect.contains(x, y)) {
+          return findViewAt(child, x, y);
+        }
+      }
+    }
+    return view;
   }
 
   @Override
@@ -216,12 +306,44 @@ public class LynxViewShellActivity extends AppCompatActivity {
     builder.addBehaviors(new ImageBehavior().create());
     builder.addBehaviors(new XElementBehaviors().create());
     // for homepage only
-    builder.addBehavior(new Behavior("explorer-input", false) {
+    //builder.addBehavior(new Behavior("explorer-input", false) {
+    /*if (initCount == 1) {
+      // for homepage only
+      builder.addBehavior(new Behavior("input", false) {
+        @Override
+        public LynxExplorerInput createUI(LynxContext context) {
+          return new LynxExplorerInput(context);
+        }
+      });
+    }*/
+    builder.addBehavior(new Behavior("input", false) {
       @Override
       public LynxExplorerInput createUI(LynxContext context) {
         return new LynxExplorerInput(context);
       }
     });
+
+    builder.addBehavior(new Behavior("material-icon", false) {
+      @Override
+      public LynxMaterialIcon createUI(LynxContext context) {
+        return new LynxMaterialIcon(context);
+      }
+    });
+
+    builder.addBehavior(new Behavior("switch", false) {
+      @Override
+      public LynxExplorerSwitch createUI(LynxContext context) {
+        return new LynxExplorerSwitch(context);
+      }
+    });
+
+    builder.addBehavior(new Behavior("activity-indicator", false) {
+      @Override
+      public LynxExplorerProgressBar createUI(LynxContext context) {
+        return new LynxExplorerProgressBar(context);
+      }
+    });
+      
     builder.setEnableGenericResourceFetcher(LynxBooleanOption.TRUE);
     builder.setGenericResourceFetcher(new DemoGenericResourceFetcher());
     builder.setTemplateResourceFetcher(new DemoTemplateResourceFetcher(this));

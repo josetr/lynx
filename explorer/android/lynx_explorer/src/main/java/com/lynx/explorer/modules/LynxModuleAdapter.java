@@ -7,7 +7,6 @@ import android.app.Instrumentation;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.res.Configuration;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
@@ -58,6 +57,9 @@ public class LynxModuleAdapter {
       }
     };
     LynxEnv.inst().registerModule("ExplorerModule", ExplorerModule.class);
+    LynxEnv.inst().registerModule("NativeUtilModule", NativeUtilModule.class);
+    LynxEnv.inst().registerModule("Keyboard", KeyboardModule.class);
+    LynxEnv.inst().registerModule("NativeLocalStorageModule", NativeLocalStorageModule.class);
 
     LynxDevtoolGlobalHelper.getInstance().registerCardListener(mListener);
   }

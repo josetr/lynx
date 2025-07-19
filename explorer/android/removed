@@ -8,9 +8,9 @@ apply plugin: 'kotlin-kapt'
 
 
 android {
-    compileSdkVersion rootProject.ext.compileSdkVersion
+  compileSdk 32
 
-    defaultConfig {
+  defaultConfig {
         applicationId "com.lynx.explorer"
         minSdkVersion 24
         targetSdkVersion 32
@@ -41,10 +41,6 @@ android {
             minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             signingConfig signingConfigs.release
-            applicationIdSuffix ".release"
-        }
-        debug {
-            applicationIdSuffix ".debug"
         }
     }
     compileOptions {
@@ -91,17 +87,50 @@ dependencies {
     implementation 'com.squareup.retrofit2:retrofit:2.7.0'
     implementation 'org.lynxsdk.lynx:v8so:11.1.277.3'
 
-    implementation project(':LynxAndroid')
+    //
 
-    implementation project(':lynx_service_log')
-    implementation project(':lynx_service_image')
-    implementation project(':lynx_service_devtool')
-    implementation project(':lynx_service_http')
-    implementation project(':LynxDevtool')
-    implementation project(':LynxXElement')
-    implementation project(':LynxXElement:Input')
+      implementation project(':LynxAndroid')
+     // implementation project(':LynxTestBench')
+
+     // implementation project(':lynx_service_log')
+     // implementation project(':lynx_service_image')
+     // implementation project(':lynx_service_devtool')
+     // implementation project(':lynx_service_http')
+      implementation project(':LynxDevtool')
+
     implementation 'androidx.autofill:autofill:1.1.0'
-    // implementation "androidx.core:core-ktx:1.12.0"
+
+//   // lynx dependencies
+//   implementation("org.lynxsdk.lynx:lynx:3.2.0-rc.0")
+//   implementation("org.lynxsdk.lynx:lynx-jssdk:3.2.0-rc.0")
+//   implementation("org.lynxsdk.lynx:lynx-trace:3.2.0-rc.0")
+//   implementation("org.lynxsdk.lynx:primjs:2.11.1-rc.0")
+//
+//   // integrating image-service
+  implementation("org.lynxsdk.lynx:lynx-service-image:3.2.0-rc.0")
+//
+//   // image-service dependencies, if not added, images cannot be loaded; if the host APP needs to use other image libraries, you can customize the image-service and remove this dependency
+//   implementation("com.facebook.fresco:fresco:2.3.0")
+//   implementation("com.facebook.fresco:animated-gif:2.3.0")
+//   implementation("com.facebook.fresco:animated-webp:2.3.0")
+//   implementation("com.facebook.fresco:webpsupport:2.3.0")
+//   implementation("com.facebook.fresco:animated-base:2.3.0")
+//
+//   // integrating log-service
+     implementation("org.lynxsdk.lynx:lynx-service-log:3.2.0-rc.0")
+//
+//   // integrating http-service
+     implementation("org.lynxsdk.lynx:lynx-service-http:3.2.0-rc.0")
+//
+//   implementation("com.squareup.okhttp3:okhttp:4.9.0")z
+//
+//   // add devtool's dependencies
+   // implementation ("org.lynxsdk.lynx:lynx-devtool:3.2.0-rc.0")
+  implementation ("org.lynxsdk.lynx:lynx-service-devtool:3.2.0-rc.0")
+
+
+
+
 
     kapt project(':LynxProcessor')
     compileOnly project(':LynxProcessor')

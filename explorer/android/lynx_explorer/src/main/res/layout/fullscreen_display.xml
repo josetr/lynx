@@ -6,6 +6,7 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     tools:context=".LynxViewShellActivity">
+<!--  android:fitsSystemWindows="true"-->
     <FrameLayout
         android:id="@+id/lynx_container"
         android:layout_width="match_parent"
