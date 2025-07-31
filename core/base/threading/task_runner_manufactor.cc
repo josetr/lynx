@@ -211,7 +211,8 @@ void UIThread::Init(void* platform_loop) {
           .GetTaskRunner();
 
 #if defined(OS_ANDROID) || (OS_IOS)
-  auto vsync_monitor = base::VSyncMonitor::Create();
+  auto vsync_monitor = base::VSyncMonitor::Create(
+      lynx::tasm::LynxEnv::GetInstance().EnableAnimationVsyncOnUIThread());
   vsync_monitor->BindToCurrentThread();
   vsync_monitor->Init();
   GetUITaskRunner()->GetLoop()->SetVSyncRequest(

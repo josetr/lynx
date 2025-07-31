@@ -251,7 +251,8 @@ void LynxShell::InitRuntime(
       static_cast<int32_t>(current_strategy_), record_id, enable_runtime_);
 #endif
   std::shared_ptr<base::VSyncMonitor> vsync_monitor =
-      base::VSyncMonitor::Create();
+      base::VSyncMonitor::Create(
+          lynx::tasm::LynxEnv::GetInstance().EnableAnimationVsyncOnUIThread());
   if (!enable_runtime_) {
     InitRuntimeWithRuntimeDisabled(vsync_monitor);
     return;

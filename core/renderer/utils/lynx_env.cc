@@ -472,5 +472,10 @@ bool LynxEnv::EnableNewAnimatorOnPatchFinishOpt() {
   return GetBoolEnv(Key::ENABLE_NEW_ANIMATOR_ON_PATCH_FINISH_OPT, true);
 }
 
+bool LynxEnv::EnableVSyncMonitorOnUIThread() {
+  //  return GetBoolEnv(Key::ENABLE_VSYNC_MONITOR_ON_UI_THREAD, false);
+  return true;
+}
+
 }  // namespace tasm
 }  // namespace lynx

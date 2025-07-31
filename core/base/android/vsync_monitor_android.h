@@ -19,6 +19,8 @@ class VSyncMonitorAndroid : public VSyncMonitor {
 
   void RequestVSyncOnUIThread(Callback callback) override;
 
+  void RequestVSyncOnUIThread() override;
+
  protected:
   void RequestVSync() override;
 

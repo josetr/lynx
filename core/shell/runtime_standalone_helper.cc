@@ -38,7 +38,8 @@ InitRuntimeStandaloneResult InitRuntimeStandalone(
       std::make_shared<lynx::shell::LynxActor<lynx::shell::NativeFacade>>(
           std::move(native_facade_runtime), js_task_runner, instance_id, true);
   std::shared_ptr<base::VSyncMonitor> vsync_monitor =
-      base::VSyncMonitor::Create();
+      base::VSyncMonitor::Create(
+          lynx::tasm::LynxEnv::GetInstance().EnableAnimationVsyncOnUIThread());
 
   auto perf_mediator =
       std::make_unique<lynx::tasm::performance::PerformanceMediator>();
