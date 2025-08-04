@@ -9,17 +9,11 @@
 namespace lynx {
 namespace lepus {
 
-Dictionary::Dictionary(HashMap map) : hash_map_(std::move(map)) {}
-
-bool Dictionary::Contains(const base::String& key) const {
-  return hash_map_.find(key) != hash_map_.end();
-}
-
 bool Dictionary::Erase(const base::String& key) {
   if (IsConstLog()) {
     return false;
   }
-  hash_map_.erase(key);
+  map_.erase(key);
   return true;
 }
 
@@ -27,13 +21,13 @@ int32_t Dictionary::EraseKey(const base::String& key) {
   if (IsConstLog()) {
     return -1;
   }
-  return static_cast<int32_t>(hash_map_.erase(key));
+  return static_cast<int32_t>(map_.erase(key));
 }
 
 Dictionary::ValueWrapper Dictionary::GetValue(const base::String& key) const {
-  auto iter = hash_map_.find(key);
-  if (iter != hash_map_.end()) {
-    return ValueWrapper(&iter->second);
+  const auto* ptr = map_.find(key);
+  if (ptr != nullptr) {
+    return ValueWrapper(ptr);
   } else {
     static Value kNil;
     return ValueWrapper(&kNil);
@@ -42,9 +36,9 @@ Dictionary::ValueWrapper Dictionary::GetValue(const base::String& key) const {
 
 Dictionary::ValueWrapper Dictionary::GetValueOrUndefined(
     const base::String& key) const {
-  auto iter = hash_map_.find(key);
-  if (iter != hash_map_.end()) {
-    return ValueWrapper(&iter->second);
+  const auto* ptr = map_.find(key);
+  if (ptr != nullptr) {
+    return ValueWrapper(ptr);
   } else {
     static Value kUndefined(Value::kCreateAsUndefinedTag);
     return ValueWrapper(&kUndefined);
@@ -53,19 +47,14 @@ Dictionary::ValueWrapper Dictionary::GetValueOrUndefined(
 
 Dictionary::ValueWrapper Dictionary::GetValueOrNull(
     const base::String& key) const {
-  auto iter = hash_map_.find(key);
-  if (iter != hash_map_.end()) {
-    return ValueWrapper(&iter->second);
-  } else {
-    return ValueWrapper(nullptr);
-  }
+  return ValueWrapper(map_.find(key));
 }
 
 Dictionary::ValueWrapper Dictionary::GetValueOrInsert(const base::String& key) {
   if (IsConstLog()) {
     return ValueWrapper(nullptr);
   } else {
-    return ValueWrapper(&hash_map_[key]);
+    return ValueWrapper(&map_[key]);
   }
 }
 
@@ -73,7 +62,7 @@ Dictionary::ValueWrapper Dictionary::GetValueOrInsert(base::String&& key) {
   if (IsConstLog()) {
     return ValueWrapper(nullptr);
   } else {
-    return ValueWrapper(&hash_map_[std::move(key)]);
+    return ValueWrapper(&map_[std::move(key)]);
   }
 }
 
@@ -104,7 +93,19 @@ void Dictionary::Dump() {
 }
 
 bool operator==(const Dictionary& left, const Dictionary& right) {
-  return left.hash_map_ == right.hash_map_;
+  if (left.size() != right.size()) {
+    return false;
+  }
+  for (const auto& [key, value] : left) {
+    auto it = right.find(key);
+    if (it == right.end()) {
+      return false;
+    }
+    if (value != it->second) {
+      return false;
+    }
+  }
+  return true;
 }
 
 }  // namespace lepus

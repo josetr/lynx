@@ -14,7 +14,7 @@ class vector_SynthProvider:
         self.count = self.valobj.GetChildMemberWithName(
             'count_').GetValueAsUnsigned()
         self.capacity = self.valobj.GetChildMemberWithName(
-            'capacity_').GetValueAsSigned()
+            'capacity_').GetValueAsUnsigned()
 
     def num_children(self):
         return self.count
@@ -38,7 +38,7 @@ class vector_SynthProvider:
         self.count = self.valobj.GetChildMemberWithName(
             'count_').GetValueAsUnsigned()
         self.capacity = self.valobj.GetChildMemberWithName(
-            'capacity_').GetValueAsSigned()
+            'capacity_').GetValueAsUnsigned()
         self.start = self.valobj.GetChildMemberWithName('memory_')
         self.data_type = self.start.GetType().GetPointeeType()
         self.data_size = self.data_type.GetByteSize()
@@ -52,6 +52,6 @@ def __lldb_init_module(debugger, dict):
         'type synthetic add -x "^lynx::base::Vector<.*>$" -l vector_lldb.vector_SynthProvider -w liblynx'
     )
     debugger.HandleCommand(
-        'type summary add -x "^lynx::base::Vector<.*>$" -s "size=${var.count_}, capacity=${var.capacity_}" -w liblynx'
+        'type summary add -x "^lynx::base::Vector<.*>$" -s "size=${var.count_}, capacity=${var.capacity_}, is_static=${var.is_static_}" -w liblynx'
     )
     debugger.HandleCommand('type category enable liblynx')

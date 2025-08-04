@@ -5,6 +5,7 @@
 #define BASE_INCLUDE_VALUE_TABLE_H_
 
 #include <algorithm>
+#include <functional>
 #include <string>
 #include <tuple>
 #include <type_traits>
@@ -13,19 +14,149 @@
 
 #include "base/include/base_defines.h"
 #include "base/include/base_export.h"
+#include "base/include/boost/unordered.h"
+#include "base/include/hybrid_map.h"
+#include "base/include/type_traits_addon.h"
 #include "base/include/value/array.h"
 #include "base/include/value/base_string.h"
 #include "base/include/value/base_value.h"
 #include "base/include/value/ref_counted_class.h"
 #include "base/include/value/ref_type.h"
+#include "base/include/vector.h"
 
 namespace lynx {
 namespace lepus {
 
 class BASE_EXPORT_FOR_DEVTOOL Dictionary : public RefCountedBase {
  public:
-  // The implementation is not guaranteed to be std::unordered_map only.
-  using HashMap = std::unordered_map<base::String, Value>;
+  // Stores up-to 4 key-value pairs on inline memory.
+  static constexpr size_t kInlineStorageSize = 4;
+
+  // Stores up-to 12 elements in small map.
+  static constexpr size_t kSmallMapMaximumSize = 12;
+
+  using Hasher = std::hash<base::String>;
+  using EqualPred = std::equal_to<base::String>;
+  using MapValueType = std::pair<const base::String, Value>;
+
+  // Use LinearFlatMap as small map type of final hybrid map.
+  // 1. Use inline memory.
+  // 2. Custom key policy which enables hash quick find instead of plain linear
+  // find and use `base::String::EqualWhenHashEqual` as comparer when two
+  // `base::String` objects are known to have the same hash values.
+  using SmallMapPolicy = base::InlineFlatMapPolicy<
+      base::InlineLinearFlatMap, kInlineStorageSize,
+      base::KeyPolicy<base::String, Hasher, EqualPred,
+                      base::String::EqualWhenHashEqual>>;
+  using SmallMapType =
+      typename SmallMapPolicy::template type<base::String, Value>;
+
+  // Use boost::unordered_flat_map as big map type of final hybrid map.
+  using BigMapPolicy =
+      boost::MapPolicy<boost::unordered_flat_map, std::hash, std::equal_to>;
+  using BigMapType = typename BigMapPolicy::template type<base::String, Value>;
+
+  // Custom data transfer method from small map to big map. Utilize the
+  // relocatable type-trait of key value types.
+  struct PlainBytesTransferPolicy {
+    template <typename SmallMap, typename BigMap>
+    void operator()(SmallMap& small_map, BigMap& big_map) {
+      static_assert(
+          base::IsTriviallyRelocatable<typename BigMap::key_type, false>::value,
+          "Requires `base::String` to be trivially relocatable.");
+      static_assert(base::IsTriviallyRelocatable<typename BigMap::mapped_type,
+                                                 false>::value,
+                    "Requires `lepus::Value` to be trivially relocatable.");
+
+      small_map.for_each([&](const auto& key, auto& value) {
+        // Treat big_map as a map containing plain bytes of key and value so
+        // that we can do trivial copy and then ignores the destruction of
+        // original objects.
+        using PlainBytesBigMap =
+            BigMapPolicy::plain_bytes_type<typename BigMap::key_type,
+                                           typename BigMap::mapped_type>;
+        using PlainBytesKeyType = typename PlainBytesBigMap::key_type;
+        using PlainBytesMappedType = typename PlainBytesBigMap::mapped_type;
+        auto& target_value = (reinterpret_cast<PlainBytesBigMap&>(
+            big_map))[reinterpret_cast<const PlainBytesKeyType&>(key)];
+        target_value = reinterpret_cast<const PlainBytesMappedType&>(value);
+      });
+      std::decay_t<decltype(small_map)>::Unsafe::SetSize(small_map, 0);
+      small_map.~SmallMap();
+    }
+  };
+
+  // HybridMap uses DefaultIteratorPolicy as default iterator implementation
+  // which is not efficient. Given the types of small and big maps, we can
+  // implement more efficient iterator types.
+  struct IteratorPolicy {
+    template <bool Const>
+    struct Iterator {
+     private:
+      // We use iterator type of boost map(the big map) as a unified iterator
+      // because it contains two pointer members and can be used to express
+      // small map's iterator which is a single pointer.
+      using UnderlyingIterator =
+          std::conditional_t<Const, typename BigMapType::const_iterator,
+                             typename BigMapType::iterator>;
+
+      UnderlyingIterator it_;
+
+     public:
+      using SmallMapIterator =
+          std::conditional_t<Const, typename SmallMapType::const_iterator,
+                             typename SmallMapType::iterator>;
+      using BigMapIterator = UnderlyingIterator;
+
+      using Pointer =
+          std::conditional_t<Const, const MapValueType*, MapValueType*>;
+      using Reference =
+          std::conditional_t<Const, const MapValueType&, MapValueType&>;
+
+     public:
+      Iterator(SmallMapIterator it) : it_(nullptr, it) {}
+      Iterator(BigMapIterator it) : it_(it) {}
+
+      explicit operator SmallMapIterator() const { return it_.inner_p(); }
+      explicit operator BigMapIterator() const { return it_; }
+
+      Reference operator*() const { return *it_; }
+
+      Pointer operator->() const { return &(*it_); }
+
+      Iterator& operator++() {
+        if (it_.inner_pc() == nullptr) {
+          // for small map, just step element pointer
+          it_.inner_p()++;
+        } else {
+          // for big map, call original increment
+          it_++;
+        }
+        return *this;
+      }
+
+      Iterator operator++(int) {
+        Iterator t(*this);
+        ++(*this);
+        return t;
+      }
+
+      friend bool operator==(const Iterator& x, const Iterator& y) {
+        return x.it_ == y.it_;
+      }
+
+      friend bool operator!=(const Iterator& x, const Iterator& y) {
+        return !(x == y);
+      }
+    };
+
+    using iterator = Iterator<false>;
+    using const_iterator = Iterator<true>;
+  };
+
+  using Map =
+      base::HybridMap<base::String, Value, kSmallMapMaximumSize, SmallMapPolicy,
+                      BigMapPolicy, PlainBytesTransferPolicy, IteratorPolicy>;
 
   /// Use ValueWrapper as result of Dictionary's GetValue() method to
   /// reduce the chance that user cache pointer address of inner Value
@@ -128,19 +259,18 @@ class BASE_EXPORT_FOR_DEVTOOL Dictionary : public RefCountedBase {
   };
 
  private:
-  class alignas(Value) ValueNoOpCtor {
-   private:
-    [[maybe_unused]] uint8_t buffer_[sizeof(Value)];
-  };
-
-  using ValueNoOpCtorHashMap = std::unordered_map<base::String, ValueNoOpCtor>;
+  using PlainBytesValueMap =
+      base::HybridMap<base::String, base::TypeOfPlainBytes<Value>,
+                      kSmallMapMaximumSize, SmallMapPolicy, BigMapPolicy,
+                      PlainBytesTransferPolicy>;
 
  public:
   static fml::RefPtr<Dictionary> Create() {
     return fml::AdoptRef<Dictionary>(new Dictionary());
   }
-  static fml::RefPtr<Dictionary> Create(HashMap map) {
-    return fml::AdoptRef<Dictionary>(new Dictionary(std::move(map)));
+  static fml::RefPtr<Dictionary> Create(
+      std::initializer_list<MapValueType>&& data) {
+    return fml::AdoptRef<Dictionary>(new Dictionary(std::move(data)));
   }
   ~Dictionary() = default;
 
@@ -151,11 +281,11 @@ class BASE_EXPORT_FOR_DEVTOOL Dictionary : public RefCountedBase {
   ///  The most primitive and intuitive code to implement this method is as
   ///  follows.
   ///
-  ///      hash_map_[key] = Value(std::forward<Args>(args)...);
+  ///      map_[key] = Value(std::forward<Args>(args)...);
   ///
   ///  or
   ///
-  ///      if (auto result = hash_map_.try_emplace(key,
+  ///      if (auto result = map_.try_emplace(key,
   ///         std::forward<Args>(args)...); !result.second) {
   ///         result.first->second = Value(std::forward<Args>(args)...);
   ///      }
@@ -165,18 +295,17 @@ class BASE_EXPORT_FOR_DEVTOOL Dictionary : public RefCountedBase {
   ///
   ///  The second way is better in performance but will cause severely binary
   ///  expansion for template specialization of try_emplace() method.
-  ///  By introducing ValueNoOpCtor and casting hash_map_ to
-  ///  ValueNoOpCtorHashMap, the emplace and construct of ValueNoOpCtor is
-  ///  cheap.
+  ///  PlainBytesValueMap treats its mapped_type as one with zero-cost of
+  ///  construction.
   template <class... Args>
   bool SetValue(const base::String& key, Args&&... args) {
     if (IsConstLog()) {
       return false;
     }
 
-    auto& hash_map_no_op = reinterpret_cast<ValueNoOpCtorHashMap&>(hash_map_);
-    auto [iterator, inserted] = hash_map_no_op.try_emplace(key);
-    Value* target_ptr = reinterpret_cast<Value*>(&iterator->second);
+    auto& map_plain_bytes_value = reinterpret_cast<PlainBytesValueMap&>(map_);
+    auto [value_ptr, inserted] = map_plain_bytes_value.try_emplace(key);
+    Value* target_ptr = reinterpret_cast<Value*>(value_ptr);
     if (!inserted) {
       // Insertion failed, destruct the existing Value.
       if constexpr (sizeof...(Args) == 1) {
@@ -218,24 +347,37 @@ class BASE_EXPORT_FOR_DEVTOOL Dictionary : public RefCountedBase {
   /// erased(0 or 1).
   int32_t EraseKey(const base::String& key);
 
-  bool Contains(const base::String& key) const;
+  bool Contains(const base::String& key) const { return map_.contains(key); }
 
-  auto find(const base::String& key) const { return hash_map_.find(key); }
+  auto find(const base::String& key) const { return map_.find_iterator(key); }
 
-  auto find(const base::String& key) { return hash_map_.find(key); }
+  auto find(const base::String& key) { return map_.find_iterator(key); }
 
-  size_t size() const { return hash_map_.size(); }
+  size_t size() const { return map_.size(); }
+
+  bool empty() const { return map_.empty(); }
+
+  void reserve(size_t count) { map_.reserve(count); }
+
+  template <typename Callback>
+  void for_each(Callback&& callback) {
+    map_.for_each(std::forward<Callback>(callback));
+  }
+
+  template <typename Callback>
+  void for_each(Callback&& callback) const {
+    map_.for_each(std::forward<Callback>(callback));
+  }
 
   /// @note Do not cache pointer to value using `&(it->second)`
-  /// to other variables. Later the underlying implementation
-  /// of this map will be changed to flat based instead of node
-  /// based.
-  auto cbegin() const { return hash_map_.cbegin(); }
-  auto cend() const { return hash_map_.cend(); }
-  auto begin() { return hash_map_.begin(); }
-  auto end() { return hash_map_.end(); }
-  auto begin() const { return hash_map_.begin(); }
-  auto end() const { return hash_map_.end(); }
+  /// to other variables. The underlying map does not guarantee pointer
+  /// stability.
+  auto cbegin() const { return map_.cbegin(); }
+  auto cend() const { return map_.cend(); }
+  auto begin() { return map_.begin(); }
+  auto end() { return map_.end(); }
+  auto begin() const { return map_.begin(); }
+  auto end() const { return map_.end(); }
 
   void Dump();
 
@@ -249,26 +391,32 @@ class BASE_EXPORT_FOR_DEVTOOL Dictionary : public RefCountedBase {
 
   bool MarkConst() {
     if (IsConst()) return true;
-    for (const auto& [key, value] : hash_map_) {
+    for (const auto& [key, value] : *this) {
       if (!value.MarkConst()) return false;
     }
     __padding_chars__[0] = 1;
     return true;
   }
 
+  bool using_small_map() const {
+    // For unittest
+    return map_.using_small_map();
+  }
+
  protected:
   Dictionary() = default;
-  Dictionary(HashMap map);
+  Dictionary(std::initializer_list<MapValueType>&& data)
+      : map_(std::move(data)) {}
 
   friend class Value;
 
   void Reset() {
-    hash_map_.clear();
+    map_.clear();
     __padding__ = 0;
   }
 
  private:
-  HashMap hash_map_;
+  Map map_;
 
   BASE_INLINE bool IsConstLog() const {
     if (IsConst()) {
