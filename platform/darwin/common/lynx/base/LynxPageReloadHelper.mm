@@ -2,6 +2,7 @@
 // Licensed under the Apache License Version 2.0 that can be found in the
 // LICENSE file in the root directory of this source tree.
 
+#import <Lynx/LynxBaseInspectorOwner.h>
 #import <Lynx/LynxClassAliasDefines.h>
 #import <Lynx/LynxLog.h>
 #import <Lynx/LynxPageReloadHelper+Internal.h>
@@ -21,7 +22,8 @@
   NSString* _url;
   Boolean _initWithBundle;
   LynxTemplateBundle* _bundle;
-
+  // TODO(tanxuelian.rovic): delete _initData and only use templateData get from
+  // inspectorOwner, remove updateDataWithTemplateData(data) at the same time
   LynxTemplateData* _initData;
 
   NSString* _fileUrl;
@@ -138,6 +140,12 @@
 
   if (_initData) {
     _initData = [_initData deepClone];
+  }
+
+  LynxTemplateData* templateData =
+      [[[_lynxView baseInspectorOwner] getCachedTemplateData] deepClone];
+  if (templateData) {
+    _initData = templateData;
   }
 
   if (_lynxView) {

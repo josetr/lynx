@@ -181,7 +181,12 @@ typedef void (^CDPResultCallback)(NSString *result);
 
 - (NSString *)debugInfoUrl:(NSString *_Nonnull)filename;
 
+- (void)onTemplateDataUpdated:(LynxTemplateData *)data;
+- (void)onResetDataWithTemplateData:(LynxTemplateData *)data;
+- (LynxTemplateData *)getCachedTemplateData;
+
 - (void)onGlobalPropsUpdated:(LynxTemplateData *)props;
+- (LynxTemplateData *)getCachedGlobalProps;
 
 - (void)showErrorMessageOnConsole:(LynxError *)error;
 - (void)showMessageOnConsole:(NSString *)message withLevel:(int32_t)level;

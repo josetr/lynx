@@ -8,7 +8,8 @@ import android.util.Base64;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RestrictTo;
-import com.lynx.tasm.LynxTemplateRender;
+import com.lynx.devtoolwrapper.LynxBaseInspectorOwner;
+import com.lynx.tasm.LynxView;
 import com.lynx.tasm.TemplateBundle;
 import com.lynx.tasm.TemplateData;
 import com.lynx.tasm.behavior.shadow.text.TextRendererCache;
@@ -34,7 +35,7 @@ public class PageReloadHelper {
   }
 
   private static final String TAG = "PageReloadHelper";
-  private WeakReference<LynxTemplateRender> mTemplateRender;
+  private WeakReference<LynxView> mLynxView;
   private String mUrl;
   private boolean mInitWithBinary;
   private boolean mInitWithUrl;
@@ -45,10 +46,12 @@ public class PageReloadHelper {
 
   private ByteBuffer mFragmentsBuffer;
   private boolean mIgnoreCache;
+  // TODO(tanxuelian.rovic): delete mInitTemplateData and only use templateData got from
+  // inspectorOwner, remove update(data) at the same time
   private TemplateData mInitTemplateData = TemplateData.fromMap(new HashMap<>());
 
-  public PageReloadHelper(@Nullable LynxTemplateRender templateRender) {
-    mTemplateRender = new WeakReference<>(templateRender);
+  public PageReloadHelper(@Nullable LynxView lynxView) {
+    mLynxView = new WeakReference<>(lynxView);
     mUrl = null;
     mInitWithBinary = false;
     mInitWithUrl = false;
@@ -60,8 +63,8 @@ public class PageReloadHelper {
     mIgnoreCache = false;
   }
 
-  public void attach(LynxTemplateRender templateRender) {
-    mTemplateRender = new WeakReference<>(templateRender);
+  public void attach(LynxView lynxView) {
+    mLynxView = new WeakReference<>(lynxView);
   }
 
   public void saveURL(@NonNull final String templateUrl, @Nullable final TemplateData templateData,
@@ -158,8 +161,8 @@ public class PageReloadHelper {
     if (ignoreCache) {
       clearCache();
     }
-    LynxTemplateRender templateRender = mTemplateRender.get();
-    if (templateRender == null) {
+    LynxView lynxView = mLynxView.get();
+    if (lynxView == null) {
       return;
     }
 
@@ -192,12 +195,13 @@ public class PageReloadHelper {
       url = currentUrl;
     }
 
+    LynxTemplateData templateData = getTemplateData();
     if (templateBin != null) {
-      templateRender.renderTemplateWithBaseUrl(templateBin, mInitTemplateData, url);
+      lynxView.renderTemplateWithBaseUrl(templateBin, templateData, url);
     } else if (templateBundle != null) {
-      templateRender.renderTemplateBundle(templateBundle, mInitTemplateData, url);
+      lynxView.renderTemplateBundle(templateBundle, templateData, url);
     } else if (url != null) {
-      templateRender.renderTemplateUrl(url, mInitTemplateData);
+      lynxView.renderTemplateUrl(url, templateData);
     } else {
       LLog.w(TAG, "Failed to reload, the lynx view may not have been loaded before.");
     }
@@ -235,14 +239,28 @@ public class PageReloadHelper {
     mInitUrlData.mInitUrl = url;
     mInitTemplateData = TemplateData.fromString("");
 
-    LynxTemplateRender templateRender = mTemplateRender.get();
-    if (templateRender != null) {
-      templateRender.renderTemplateUrl(mInitUrlData.mInitUrl, mInitTemplateData);
+    LynxView lynxView = mLynxView.get();
+    if (lynxView == null) {
+      return;
     }
+    lynxView.renderTemplateUrl(mInitUrlData.mInitUrl, mInitTemplateData);
   }
 
   public String getURL() {
     return mUrl;
+  }
+
+  private LynxTemplateData getTemplateData() {
+    LynxTemplateData templateData = mInitTemplateData;
+    LynxView lynxView = mLynxView.get();
+    if (lynxView == null) {
+      return templateData;
+    }
+    LynxBaseInspectorOwner inspectorOwner = lynxView.getBaseInspectorOwner();
+    if (inspectorOwner != null) {
+      templateData = inspectorOwner.getCachedTemplateData();
+    }
+    return templateData;
   }
 
   /**
@@ -254,8 +272,9 @@ public class PageReloadHelper {
   }
 
   public long getTemplateDataPtr() {
-    if (mInitTemplateData != null) {
-      return mInitTemplateData.getNativePtr();
+    LynxTemplateData templateData = getTemplateData();
+    if (templateData != null) {
+      return templateData.getNativePtr();
     }
     return 0;
   }

@@ -130,11 +130,17 @@
   if (_reloader != nil) {
     [_reloader updateDataWithTemplateData:data];
   }
+  if (_owner != nil) {
+    [_owner onTemplateDataUpdated:data];
+  }
 }
 
 - (void)onResetDataWithTemplateData:(LynxTemplateData *)data {
   if (_reloader != nil) {
     [_reloader resetDataWithTemplateData:data];
+  }
+  if (_owner != nil) {
+    [_owner onResetDataWithTemplateData:data];
   }
 }
 

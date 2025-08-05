@@ -96,7 +96,7 @@ public class LynxDevtool {
       }
 
       if (mOwner != null || mLogBox != null) {
-        mReloader = new PageReloadHelper(render);
+        mReloader = new PageReloadHelper(view);
       }
 
       if (mOwner != null) {
@@ -142,6 +142,12 @@ public class LynxDevtool {
   public void onGlobalPropsChanged(TemplateData globalProps) {
     if (mOwner != null) {
       mOwner.onGlobalPropsUpdated(globalProps);
+    }
+  }
+
+  public void onTemplateDataChanged(TemplateData templateData) {
+    if (mOwner != null) {
+      mOwner.onTemplateDataUpdated(templateData);
     }
   }
 
@@ -270,7 +276,7 @@ public class LynxDevtool {
     }
 
     if (mReloader != null) {
-      mReloader.attach(render);
+      mReloader.attach(lynxView);
     }
 
     if (mOwner != null) {

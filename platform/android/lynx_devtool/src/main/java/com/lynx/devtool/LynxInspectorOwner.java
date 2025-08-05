@@ -50,6 +50,7 @@ import com.lynx.tasm.provider.LynxResourceCallback;
 import com.lynx.tasm.provider.LynxResourceResponse;
 import java.io.File;
 import java.lang.ref.WeakReference;
+import java.util.HashMap;
 import java.util.Map;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -84,6 +85,7 @@ public class LynxInspectorOwner implements LynxBaseInspectorOwnerNG {
 
   private GlobalPropsObserver globalPropsObserver = null;
   private TemplateData cachedGlobalProps = null;
+  private TemplateData cachedTemplateData = TemplateData.fromMap(new HashMap<>());
 
   public LynxInspectorOwner() {
     init();
@@ -412,8 +414,8 @@ public class LynxInspectorOwner implements LynxBaseInspectorOwnerNG {
   }
 
   public long getTemplateDataPtr() {
-    if (mReloadHelper != null) {
-      return mReloadHelper.getTemplateDataPtr();
+    if (cachedTemplateData != null) {
+      return cachedTemplateData.getNativePtr();
     }
     return 0;
   }
@@ -645,6 +647,17 @@ public class LynxInspectorOwner implements LynxBaseInspectorOwnerNG {
       }
       this.globalPropsObserver.onGlobalPropsUpdated(globalProps);
     }
+  }
+
+  // only pass the changed templateData
+  @Override
+  public void onTemplateDataUpdated(TemplateData templateData) {
+    cachedTemplateData = templateData;
+  }
+
+  @Override
+  public TemplateData getCachedTemplateData() {
+    return cachedTemplateData;
   }
 
   @Override

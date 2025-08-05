@@ -59,6 +59,10 @@ public interface LynxBaseInspectorOwner {
   void onReceiveMessageEvent(ReadableMap event);
 
   void onGlobalPropsUpdated(TemplateData props);
+  TemplateData getCachedGlobalProps();
+
+  void onTemplateDataUpdated(TemplateData templateData);
+  TemplateData getCachedTemplateData();
 
   void setDevToolDelegate(IDevToolDelegate devToolDelegate);
   @RestrictTo(RestrictTo.Scope.LIBRARY) void showErrorMessageOnConsole(final LynxError error);

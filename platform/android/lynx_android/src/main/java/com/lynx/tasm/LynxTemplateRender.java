@@ -1713,6 +1713,10 @@ public class LynxTemplateRender implements ILynxEngine, ILynxErrorReceiver {
 
     if (mEnableReuseEngine && mLynxEngineRef == null) {
       mTemplateData.updateWithTemplateData(meta.getUpdatedData());
+      if (mTemplateData != null && mDevTool != null) {
+        mDevTool.onUpdate(meta.getUpdatedData());
+        mDevTool.onTemplateDataChanged(mTemplateData);
+      }
       tryReuseLynxEngineFromPool();
       if (mLynxEngineRef == null) {
         fallbackNewEngine(false, true);
@@ -1789,10 +1793,6 @@ public class LynxTemplateRender implements ILynxEngine, ILynxErrorReceiver {
       LLog.e(TAG, "updateData with TemplateData after flush is nullptr");
       return false;
     }
-
-    if (mDevTool != null) {
-      mDevTool.onUpdate(data);
-    }
     mWillContentSizeChange = true;
     if (mNativePtr != 0) {
       nativeMarkDirty(mNativePtr, mNativeLifecycle);
@@ -1814,6 +1814,11 @@ public class LynxTemplateRender implements ILynxEngine, ILynxErrorReceiver {
 
     if (mEnableReuseEngine) {
       mTemplateData.updateWithTemplateData(data);
+
+      if (mTemplateData != null && mDevTool != null) {
+        mDevTool.onUpdate(data);
+        mDevTool.onTemplateDataChanged(mTemplateData);
+      }
     }
 
     LynxContext context = mLynxContext;
@@ -1837,6 +1842,9 @@ public class LynxTemplateRender implements ILynxEngine, ILynxErrorReceiver {
     String eventName = "LynxTemplateRender.resetData";
     onTraceEventBegin(eventName);
     if (prepareUpdateData(data)) {
+      if (data != null && mDevTool != null) {
+        mDevTool.onTemplateDataChanged(data);
+      }
       nativeResetDataByPreParsedData(mNativePtr, mNativeLifecycle, data.getNativePtr(),
           data.processorName(), data.isReadOnly(), data);
     }
