@@ -1611,6 +1611,7 @@ void FiberElement::FlushActions() {
 
   // Step I: Handle Action for current element: Prepare&HandleFixedChange
   FlushSelf();
+  NotifyElementContainerPrepared();
 
   // Step II: process insert or remove related actions
   PrepareAndGenerateChildrenActions();
@@ -1785,6 +1786,7 @@ void FiberElement::PrepareChildren() {
 
     if ((child->dirty_ & ~kDirtyTree) != 0) {
       child->PrepareForCreateOrUpdate();
+      NotifyElementContainerPrepared();
     }
 
     if (child->is_layout_only_ && !child->is_raw_text()) {
@@ -1827,6 +1829,7 @@ void FiberElement::PrepareAndGenerateChildrenActions() {
                 });
     if (!has_to_store_insert_remove_actions_) {
       for (const auto &child : scoped_children_) {
+        child->NotifyElementContainerPrepared();
         if (!child->render_parent_) {
           // if no pending tree actions, we just do insertion here
           if (!child->is_fixed_ || GetEnableFixedNew()) {
@@ -1846,6 +1849,7 @@ void FiberElement::PrepareAndGenerateChildrenActions() {
       switch (param.type_) {
         case Action::kInsertChildAct: {
           PrepareChildForInsertion(param.child_.get());
+          param.child_.get()->NotifyElementContainerPrepared();
           if (!param.is_fixed_ || GetEnableFixedNew()) {
             HandleInsertChildAction(param.child_.get(),
                                     static_cast<int>(param.index_),
@@ -4193,6 +4197,12 @@ lepus::Value FiberElement::GetEventControlInfo(const std::string &event_type,
   }
 
   return lepus::Value(std::move(array));
+}
+
+void FiberElement::NotifyElementContainerPrepared() {
+  if (element_container_) {
+    element_container_->NotifyReadyToUse();
+  }
 }
 
 }  // namespace tasm
