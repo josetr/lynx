@@ -60,7 +60,7 @@
                                                      block:^() {
                                                        __strong LynxTemplateRender* strongSelf =
                                                            weakSelf;
-                                                       strongSelf->shell_->TriggerLayout();
+                                                       strongSelf->layoutProxy_->TriggerLayout();
                                                      }];
   }
   if (!_isEngineInitFromReusePool) {
@@ -173,6 +173,7 @@
   dispatch_once(&onceToken, ^{
     lynx::tasm::LynxGlobalPool::GetInstance().PreparePool();
   });
+  layoutProxy_ = std::make_shared<lynx::shell::LynxLayoutProxyDarwin>(shell_->GetLayoutActor());
 }
 
 - (void)setUpEventHandler {
@@ -255,9 +256,7 @@
 - (void)setUpLynxContextWithLastInstanceId:(int32_t)lastInstanceId {
   _context = [[LynxContext alloc] initWithContainerView:_containerView];
   _context.instanceId = shell_->GetInstanceId();
-  auto layout_proxy =
-      std::make_shared<lynx::shell::LynxLayoutProxyDarwin>(shell_->GetLayoutActor());
-  [_context setLayoutProxy:layout_proxy];
+  [_context setLayoutProxy:layoutProxy_];
   [_lynxUIRenderer setLynxContext:_context];
   [LynxEventReporter moveExtraParams:lastInstanceId toInstanceId:_context.instanceId];
   [LynxEventReporter updateGenericInfo:@(_threadStrategyForRendering)

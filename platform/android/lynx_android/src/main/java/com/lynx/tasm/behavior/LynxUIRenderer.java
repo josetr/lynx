@@ -50,6 +50,7 @@ import com.lynx.tasm.behavior.ui.LynxUI;
 import com.lynx.tasm.behavior.ui.UIBody;
 import com.lynx.tasm.behavior.ui.UIBody.UIBodyView;
 import com.lynx.tasm.behavior.ui.UIGroup;
+import com.lynx.tasm.core.LynxLayoutProxy;
 import com.lynx.tasm.eventreport.LynxEventReporter;
 import com.lynx.tasm.performance.longtasktiming.LynxLongTaskMonitor;
 import com.lynx.tasm.utils.DisplayMetricsHolder;
@@ -173,7 +174,7 @@ public class LynxUIRenderer implements ILynxUIRenderer {
   @Override
   public void onCreateTemplateRenderer(LynxContext context, LynxPageLoadListener pageLoadListener,
       ThreadStrategyForRendering threadStrategy, BehaviorRegistry behaviorRegistry,
-      LayoutTick layoutTick) {
+      LayoutTick layoutTick, LynxLayoutProxy layoutProxy) {
     if (mLynxUIOwner == null) {
       return;
     }
@@ -183,7 +184,7 @@ public class LynxUIRenderer implements ILynxUIRenderer {
           : new PaintingContext(mLynxUIOwner, threadStrategy.id());
     }
     if (mShadowNodeOwner == null) {
-      mShadowNodeOwner = new ShadowNodeOwner(context, behaviorRegistry, layoutTick);
+      mShadowNodeOwner = new ShadowNodeOwner(context, behaviorRegistry, layoutTick, layoutProxy);
     }
     context.setShadowNodeOwner(mShadowNodeOwner);
   }

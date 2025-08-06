@@ -23,6 +23,8 @@ class LynxLayoutProxyAndroid {
   void RunOnLayoutThread(JNIEnv *env, jobject jcaller, jlong nativePtr,
                          jobject java_runnable);
 
+  void TriggerLayout();
+
  private:
   std::unique_ptr<LynxLayoutProxy> layout_proxy_;
 };

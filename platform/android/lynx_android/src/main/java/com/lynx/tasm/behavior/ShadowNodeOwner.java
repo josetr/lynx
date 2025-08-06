@@ -12,6 +12,7 @@ import com.lynx.tasm.behavior.shadow.LayoutTick;
 import com.lynx.tasm.behavior.shadow.NativeLayoutNodeRef;
 import com.lynx.tasm.behavior.shadow.ShadowNode;
 import com.lynx.tasm.behavior.shadow.ShadowNodeType;
+import com.lynx.tasm.core.LynxLayoutProxy;
 import com.lynx.tasm.event.EventsListener;
 
 /**
@@ -25,14 +26,17 @@ public class ShadowNodeOwner extends LayoutContext {
   private final BehaviorRegistry mBehaviorRegistry;
   private final ShadowNodeRegistry mShadowNodeRegistry;
 
+  private final LynxLayoutProxy mLynxLayoutProxy;
+
   protected LayoutNodeManager mLayoutNodeManager;
-  public ShadowNodeOwner(
-      LynxContext context, BehaviorRegistry behaviorRegistry, LayoutTick layoutTick) {
+  public ShadowNodeOwner(LynxContext context, BehaviorRegistry behaviorRegistry,
+      LayoutTick layoutTick, LynxLayoutProxy lynxLayoutProxy) {
     mLynxContext = context;
     mShadowNodeRegistry = new ShadowNodeRegistry();
     mBehaviorRegistry = behaviorRegistry;
     mLayoutTick = layoutTick;
     mLayoutNodeManager = new LayoutNodeManager();
+    mLynxLayoutProxy = lynxLayoutProxy;
     createNativeLayoutContext(this);
   }
 
@@ -202,5 +206,11 @@ public class ShadowNodeOwner extends LayoutContext {
 
   public ShadowNode getShadowNode(int signature) {
     return mShadowNodeRegistry.getNode(signature);
+  }
+
+  private void triggerLayout() {
+    if (mLynxLayoutProxy != null) {
+      mLynxLayoutProxy.triggerLayout();
+    }
   }
 }

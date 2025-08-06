@@ -23,6 +23,7 @@ import com.lynx.tasm.behavior.ui.LynxBaseUI;
 import com.lynx.tasm.behavior.ui.UIBody;
 import com.lynx.tasm.behavior.ui.UIBody.UIBodyView;
 import com.lynx.tasm.behavior.ui.UIGroup;
+import com.lynx.tasm.core.LynxLayoutProxy;
 
 public interface ILynxUIRenderer {
   void onInitBodyView(UIBodyView bodyView, Context context, LynxGroup group);
@@ -32,7 +33,7 @@ public interface ILynxUIRenderer {
 
   void onCreateTemplateRenderer(LynxContext context, LynxPageLoadListener pageLoadListener,
       ThreadStrategyForRendering threadStrategy, BehaviorRegistry behaviorRegistry,
-      LayoutTick layoutTick);
+      LayoutTick layoutTick, LynxLayoutProxy layoutProxy);
 
   void attachBodyView(UIBodyView bodyView, LynxContext lynxContext, Context context);
 

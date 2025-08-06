@@ -13,6 +13,7 @@
 
 #include "core/renderer/ui_wrapper/painting/ios/ui_delegate_darwin.h"
 #include "core/runtime/bindings/jsi/modules/ios/module_factory_darwin.h"
+#include "core/shell/ios/lynx_layout_proxy_darwin.h"
 #include "core/shell/lynx_shell.h"
 #include "core/template_bundle/template_codec/binary_decoder/page_config.h"
 
@@ -81,6 +82,7 @@ NS_ASSUME_NONNULL_BEGIN
   CGSize _intrinsicContentSize;
   std::unique_ptr<lynx::shell::LynxShell> shell_;
   std::shared_ptr<lynx::tasm::PageConfig> pageConfig_;
+  std::shared_ptr<lynx::shell::LynxLayoutProxyDarwin> layoutProxy_;
   std::weak_ptr<lynx::piper::LynxModuleManager> module_manager_;
   id<LynxUIRendererProtocol> _lynxUIRenderer;
   // property

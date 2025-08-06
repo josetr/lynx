@@ -73,7 +73,6 @@
 #include "core/services/performance/darwin/performance_controller_darwin.h"
 #include "core/services/timing_handler/timing_constants.h"
 #include "core/shell/ios/data_utils.h"
-#include "core/shell/ios/lynx_layout_proxy_darwin.h"
 #include "core/shell/ios/native_facade_darwin.h"
 #include "core/shell/ios/tasm_platform_invoker_darwin.h"
 #include "core/shell/lynx_shell_builder.h"

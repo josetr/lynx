@@ -21,6 +21,7 @@ class LynxLayoutProxyDarwin {
       : layout_proxy_(std::make_unique<LynxLayoutProxy>(actor)) {}
   ~LynxLayoutProxyDarwin() = default;
   void RunOnLayoutThread(dispatch_block_t task);
+  void TriggerLayout();
 
  private:
   std::unique_ptr<LynxLayoutProxy> layout_proxy_;

@@ -17,6 +17,12 @@ public class LynxLayoutProxy {
     }
   }
 
+  public void triggerLayout() {
+    if (mNativePtr != 0) {
+      nativeTriggerLayout(mNativePtr);
+    }
+  }
+
   public void destroy() {
     nativeRelease(mNativePtr);
     mNativePtr = 0;
@@ -27,4 +33,6 @@ public class LynxLayoutProxy {
   private native void nativeRelease(long nativePtr);
 
   private native void nativeRunOnLayoutThread(long nativePtr, Runnable runnable);
+
+  private native void nativeTriggerLayout(long nativePtr);
 }

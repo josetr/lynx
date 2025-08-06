@@ -26,6 +26,8 @@ class LynxLayoutProxy {
 
   void DispatchTaskToLynxLayout(base::closure task);
 
+  void TriggerLayout();
+
  private:
   std::shared_ptr<shell::LynxActor<tasm::LayoutContext>> actor_;
 };

@@ -25,10 +25,6 @@ bool RegisterJNIForLayoutContext(JNIEnv* env) {
 }  // namespace jni
 }  // namespace lynx
 
-void TriggerLayout(JNIEnv* env, jobject jcaller, jlong ptr) {
-  reinterpret_cast<lynx::tasm::LayoutContextAndroid*>(ptr)->TriggerLayout();
-}
-
 jlong CreateLayoutContext(JNIEnv* env, jobject jcaller,
                           jobject layout_context) {
   return reinterpret_cast<jlong>(
@@ -172,8 +168,7 @@ void LayoutContextAndroid::OnLayout(int id, float left, float top, float width,
                                       width, height);
 }
 
-void LayoutContextAndroid::ScheduleLayout(base::closure callback) {
-  trigger_layout_callback_ = std::move(callback);
+void LayoutContextAndroid::ScheduleLayout() {
   JNIEnv* env = base::android::AttachCurrentThread();
   base::android::ScopedLocalJavaRef<jobject> local_ref(impl_);
   if (local_ref.IsNull()) {
@@ -256,8 +251,6 @@ std::unique_ptr<PlatformExtraBundleHolder>
 LayoutContextAndroid::ReleasePlatformBundleHolder() {
   return std::move(bundle_holder_);
 }
-
-void LayoutContextAndroid::TriggerLayout() { trigger_layout_callback_(); }
 
 void LayoutContextAndroid::SetLayoutNodeManager(
     LayoutNodeManager* layout_node_manager) {

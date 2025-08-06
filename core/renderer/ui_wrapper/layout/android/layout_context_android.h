@@ -35,7 +35,7 @@ class LayoutContextAndroid : public LayoutCtxPlatformImpl {
   void OnLayout(int tag, float left, float top, float width, float height,
                 const std::array<float, 4>& paddings,
                 const std::array<float, 4>& borders) override;
-  void ScheduleLayout(base::closure callback) override;
+  void ScheduleLayout() override;
   void DestroyLayoutNodes(const std::unordered_set<int>& ids) override;
   void Destroy() override;
   void SetFontFaces(const CSSFontFaceRuleMap& fontfaces) override;
@@ -45,8 +45,6 @@ class LayoutContextAndroid : public LayoutCtxPlatformImpl {
 
   std::unique_ptr<PlatformExtraBundleHolder> ReleasePlatformBundleHolder()
       override;
-
-  void TriggerLayout();
 
  private:
   base::android::ScopedWeakGlobalJavaRef<jobject> impl_;

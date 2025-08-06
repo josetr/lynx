@@ -791,7 +791,8 @@ public class LynxTemplateRender implements ILynxEngine, ILynxErrorReceiver {
 
     ILynxUIRenderer lynxUIRenderer = lynxUIRenderer();
     lynxUIRenderer.onCreateTemplateRenderer(mLynxContext, mPageLoadListener,
-        mThreadStrategyForRendering, mLynxViewConfigProvider.getBehaviorRegistry(), layoutTick);
+        mThreadStrategyForRendering, mLynxViewConfigProvider.getBehaviorRegistry(), layoutTick,
+        mLayoutProxy);
 
     TasmPlatformInvoker tasmPlatformInvoker;
     if (mTasmPlatformInvoker != null && mTasmPlatformInvoker.get() != null) {

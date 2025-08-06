@@ -62,12 +62,6 @@ public abstract class LayoutContext {
 
   public abstract DisplayMetrics getScreenMetrics();
 
-  public void triggerLayout() {
-    if (mNativePtr != 0) {
-      nativeTriggerLayout(mNativePtr);
-    }
-  }
-
   protected void createNativeLayoutContext(Object layoutContext) {
     mNativeLayoutContextPtr = nativeCreateLayoutContext(layoutContext);
   }
@@ -76,7 +70,6 @@ public abstract class LayoutContext {
     return mNativeLayoutContextPtr;
   }
 
-  private native void nativeTriggerLayout(long ptr);
   private native long nativeCreateLayoutContext(Object layoutContext);
 
   public void destroy() {
