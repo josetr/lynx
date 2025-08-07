@@ -19,6 +19,7 @@
 #include "devtool/lynx_devtool/js_debug/js/inspector_java_script_debugger_impl.h"
 #include "devtool/lynx_devtool/js_debug/lepus/inspector_lepus_debugger_impl.h"
 #include "devtool/lynx_devtool/lynx_devtool_ng.h"
+#include "devtool/lynx_devtool/tracing/devtool_trace_event_def.h"
 
 namespace lynx {
 namespace devtool {
@@ -642,6 +643,7 @@ void LynxDevToolMediator::DispatchJSMessage(const Json::Value& message) {
     lepus_debugger_->DispatchMessage(message.toStyledString(),
                                      message[kKeySessionId].asString());
   } else if (js_debugger_ != nullptr) {
+    TRACE_WITH_METHOD_NAME(message);
     js_debugger_->DispatchMessage(message.toStyledString());
   }
 }

@@ -8,6 +8,7 @@
 #include "base/include/log/logging.h"
 #include "base/include/timer/time_utils.h"
 #include "core/base/json/json_util.h"
+#include "devtool/base_devtool/native/tracing/basedevtool_trace_event_def.h"
 
 namespace lynx {
 namespace devtool {
@@ -18,6 +19,7 @@ InspectorClientDelegateBaseImpl::InspectorClientDelegateBaseImpl(
 
 void InspectorClientDelegateBaseImpl::DispatchMessageAsync(
     const std::string &message, int instance_id) {
+  TRACE_EVENT(LYNX_TRACE_CATEGORY_DEVTOOL, DISPATCH_MESSAGE_ASYNC);
   rapidjson::Document json_mes;
   if (!ParseStrToJson(json_mes, message)) {
     return;
@@ -110,7 +112,9 @@ void InspectorClientDelegateBaseImpl::FlushMessageQueueWithLockHeld() {
     std::string mes = message_queue_.front().second;
     message_queue_.pop();
     mutex_.unlock();  // Unlock to dispatch message to js engine.
+    TRACE_EVENT_PROCESS_BEGIN(mes);
     DispatchMessage(mes, instance_id);
+    TRACE_EVENT_PROCESS_END;
     mutex_.lock();
   }
 }

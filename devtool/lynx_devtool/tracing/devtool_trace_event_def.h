@@ -41,6 +41,20 @@ inline constexpr const char* const FRAME_TRACE_SERVICE_BEGIN_FRAME =
 inline constexpr const char* const FRAME_TRACE_SERVICE_DRAW_FRAME = "DrawFrame";
 inline constexpr const char* const INSTANCE_COUNTER_TRACE_UPDATE_COUNTERS =
     "UpdateCounters";
-#endif  // #if ENABLE_TRACE_PERFETTO || ENABLE_TRACE_SYSTRACE
 
+#define TRACE_WITH_METHOD_NAME(m)                                      \
+  std::string message_name =                                           \
+      std::string("DispatchJSMessage.") + m[kKeyMethod].asString();    \
+  TRACE_EVENT(LYNX_TRACE_CATEGORY_DEVTOOL, message_name.c_str(), "id", \
+              m[kKeyId].asInt())
+
+#define TRACE_EVENT_PROCESS_BEGIN(m)
+
+#define TRACE_EVENT_PROCESS_END
+
+#else  // #if ENABLE_TRACE_PERFETTO || ENABLE_TRACE_SYSTRACE
+#define TRACE_WITH_METHOD_NAME(m)
+#define TRACE_EVENT_PROCESS_BEGIN(m)
+#define TRACE_EVENT_PROCESS_END
+#endif
 #endif  // DEVTOOL_LYNX_DEVTOOL_TRACING_DEVTOOL_TRACE_EVENT_DEF_H_
