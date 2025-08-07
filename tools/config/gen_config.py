@@ -24,7 +24,7 @@ class Config:
     ):
         self.name = name
         self.upper_camel_case_name = f"{name[0].upper()}{name[1:]}"
-        self.snake_case_name = re.sub(r"(?<=[a-z])(?=[A-Z])", "_", name).lower()
+        self.snake_case_name = re.sub(r"(?<=[a-z])(?=[A-Z])|(?<=[A-Z])(?=[A-Z][a-z])", "_", name).lower()
         self.const_name = f"k{self.upper_camel_case_name}"
         self.desc = desc
         self.default_value = default_value
