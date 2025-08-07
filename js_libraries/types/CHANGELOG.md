@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 3.4.4
+- fix `TextCodecHelper` defines.
+- Update `fetch` defines for chunk streaming.
+
 ## 3.4.3
 - Add `font-variation-settings`,`font-feature-settings` and `font-optical-sizing` CSS properties.
 - Add `experimental-recycle-available-item-before-layout` property for list.
